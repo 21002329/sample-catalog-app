@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{category.name}}{% endblock %}
+{% block head %}{{super()}}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-sm-4">
+            <h1>Categories</h1>
+            {% for category in categories %}
+            <a href="{{url_for('show_items_category', category_id=category.id)}}">
+                <p>{{category.name}}</p>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="col-sm-8">
+            <h1>{{category.name}} Items</h1>
+            {% for item in items %}
+            <a href="{{url_for('show_item', category_id=item.category_id, item_id=item.id)}}">
+                <p>{{item.name}}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
