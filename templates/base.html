@@ -14,14 +14,19 @@
 </head>
 
 <body>
-    <div id="content">{% block content %}{% endblock %}</div>
-    <div id="footer">
-        <div class=container>
-        {% block footer %}
-        <span class="text-muted">&#064; 2017 by <a href="https://github.com/alazdev">alazdev</a>.</span>
-        {% endblock %}
+    <header>
+        <div class="navbar navbar-inverse">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">Catalog</a>
+                </div>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#"><span class="glyphicon-login"></span> Login</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
 </body>
 
 </html>
