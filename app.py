@@ -51,20 +51,14 @@ def show_item(category_id, item_id):
 # Add an item
 @app.route('/catalog/add/', methods=['GET', 'POST'])
 def add_item():
-    print('req rec')
     if request.method == 'POST':
-        print('post')
         item_name = request.form['name']
-        print(item_name)
         item_info = request.form['info']
-        print(item_info)
         item_category_id = request.form['category']
-        print(str(item_category_id))
         item_to_add = Item(
             name=item_name, info=item_info, category_id=item_category_id)
         session.add(item_to_add)
         session.commit()
-        print('redirect')
         return redirect(url_for('show_items'))
     else:
         print('get')
@@ -81,6 +75,7 @@ def edit_item(category_id, item_id):
             item_to_edit.name = request.form['name']
             item_to_edit.info = request.form['info']
             item_to_edit.category_id = request.form['category']
+            session.commit()
             return redirect(url_for('show_items'))
     else:
         categories = session.query(Category).all()
