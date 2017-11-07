@@ -9,7 +9,7 @@ Flask framework is used for web functionalities. You can download it from https:
 
 SQLAlchemy is used as the ORM. You can download it from http://www.sqlalchemy.org/download.html.
 
-## Setting up
+### Setting up
 Initialize the data model with:
 ```
 python3 model.py
