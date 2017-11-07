@@ -14,6 +14,7 @@ Initialize the data model with:
 ```
 python3 model.py
 ```
+You should see the item-catalog.db file created afterwards.
 
 To populate the database with some predefined categories, you can use:
 ```
