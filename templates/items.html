@@ -14,9 +14,11 @@
             </div>
             <div class="col-sm-8">
                 <h1>Latest Items</h1>
+                {% if logged_in %}
                 <a href="{{url_for('add_item')}}">
                     <h3>Add Item</h3>
                 </a>
+                {% endif %}
                 {% for item in items %}
                 <a href="{{url_for('show_item', category_id=item.category_id, item_id=item.id)}}">
                     <p>{{item.name}}</p>
