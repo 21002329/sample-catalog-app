@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
+from flask import Flask, render_template, request, redirect, jsonify, \
+    url_for, flash
 from flask import session as login_session
 from flask import make_response
 from oauth2client.client import flow_from_clientsecrets
@@ -102,7 +103,8 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
+        response = make_response(json.dumps('Current user is' +
+                                            'already connected.'),
                                  200)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -129,7 +131,8 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;'
+    output += '-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     return output
 
 
@@ -141,7 +144,8 @@ def gdisconnect():
             'Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % \
+        login_session['access_token']
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     if result['status'] == '200':
@@ -216,7 +220,8 @@ def add_item():
                                logged_in=app.logged_in)
 
 
-@app.route('/catalog/<int:category_id>/item/<int:item_id>/edit/', methods=['GET', 'POST'])
+@app.route('/catalog/<int:category_id>/item/<int:item_id>/edit/',
+           methods=['GET', 'POST'])
 def edit_item(category_id, item_id):
     """Edit an item"""
     if 'username' not in login_session:
@@ -237,7 +242,8 @@ def edit_item(category_id, item_id):
                                logged_in=app.logged_in)
 
 
-@app.route('/catalog/<int:category_id>/item/<int:item_id>/delete/', methods=['GET', 'POST'])
+@app.route('/catalog/<int:category_id>/item/<int:item_id>/delete/',
+           methods=['GET', 'POST'])
 def delete_item(category_id, item_id):
     """Delete an item"""
     if 'username' not in login_session:
