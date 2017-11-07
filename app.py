@@ -28,8 +28,17 @@ session = DBSession()
 @app.route('/catalog.json')
 def itemsJSON():
     """JSON endpoint"""
-    items = session.query(Item).all()
-    return jsonify(Catalog=[i.serialize for i in items])
+    catalog = []
+    categories = session.query(Category).all()
+    for category in categories:
+        items = session.query(Item).filter_by(category_id=category.id).all()
+        catalog.append({
+            'id': category.id,
+            'name': category.name,
+            'Item': [i.serialize for i in items]
+        })
+
+    return jsonify(Category=catalog)
 
 
 @app.route('/login')
@@ -43,6 +52,7 @@ def show_login():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    """Google sign in"""
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -152,6 +162,7 @@ def gdisconnect():
 @app.route('/')
 @app.route('/catalog/')
 def show_items():
+    """Show all items"""
     # Latest 10 items
     items = session.query(Item).order_by(desc(Item.id)).limit(10)
     categories = session.query(Category).all()
@@ -163,6 +174,7 @@ def show_items():
 
 @app.route('/catalog/<int:category_id>/items')
 def show_items_category(category_id):
+    """Show all items within a category"""
     category = session.query(Category).filter_by(id=category_id).one()
     items = session.query(Item).filter_by(category_id=category_id).all()
     categories = session.query(Category).all()
@@ -175,6 +187,7 @@ def show_items_category(category_id):
 
 @app.route('/catalog/<int:category_id>/item/<int:item_id>')
 def show_item(category_id, item_id):
+    """Show an item"""
     item_to_show = session.query(Item).filter_by(id=item_id).one()
     return render_template('show_item.html',
                            item=item_to_show,
@@ -183,6 +196,7 @@ def show_item(category_id, item_id):
 
 @app.route('/catalog/add/', methods=['GET', 'POST'])
 def add_item():
+    """Add an item"""
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
@@ -204,6 +218,7 @@ def add_item():
 
 @app.route('/catalog/<int:category_id>/item/<int:item_id>/edit/', methods=['GET', 'POST'])
 def edit_item(category_id, item_id):
+    """Edit an item"""
     if 'username' not in login_session:
         return redirect('/login')
     item_to_edit = session.query(Item).filter_by(id=item_id).one()
@@ -224,6 +239,7 @@ def edit_item(category_id, item_id):
 
 @app.route('/catalog/<int:category_id>/item/<int:item_id>/delete/', methods=['GET', 'POST'])
 def delete_item(category_id, item_id):
+    """Delete an item"""
     if 'username' not in login_session:
         return redirect('/login')
     item_to_delete = session.query(
