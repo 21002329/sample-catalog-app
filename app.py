@@ -104,9 +104,10 @@ def gconnect():
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
         response = make_response(json.dumps('Current user is' +
-                                            'already connected.'),
+                                            ' already connected.'),
                                  200)
         response.headers['Content-Type'] = 'application/json'
+        app.logged_in = True
         return response
 
     # Store the access token in the session for later use.
@@ -213,7 +214,6 @@ def add_item():
         session.commit()
         return redirect(url_for('show_items'))
     else:
-        print('get')
         categories = session.query(Category).all()
         return render_template('add_item.html',
                                categories=categories,

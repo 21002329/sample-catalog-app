@@ -9,7 +9,7 @@ Base = declarative_base()
 class Category(Base):
     __tablename__ = 'category'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(250), nullable=False)
 
     @property
@@ -24,7 +24,7 @@ class Category(Base):
 class Item(Base):
     __tablename__ = 'item'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(250))
     info = Column(String(1000), nullable=False)
     category_id = Column(Integer, ForeignKey('category.id'), primary_key=True)
