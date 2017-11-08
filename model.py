@@ -25,9 +25,9 @@ class Item(Base):
     __tablename__ = 'item'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(250))
+    name = Column(String(250), nullable=False)
     info = Column(String(1000), nullable=False)
-    category_id = Column(Integer, ForeignKey('category.id'), primary_key=True)
+    category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
 
     @property
