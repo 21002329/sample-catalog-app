@@ -9,8 +9,8 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = 'user'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String(250), nullable=False)
+    id = Column(Integer, autoincrement=True)
+    email = Column(String(250), primary_key=True)
 
     @property
     def serialize(self):
