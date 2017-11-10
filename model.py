@@ -6,6 +6,21 @@ from sqlalchemy import create_engine
 Base = declarative_base()
 
 
+class User(Base):
+    __tablename__ = 'user'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(250), nullable=False)
+
+    @property
+    def serialize(self):
+        """Return object data in serializeable format"""
+        return {
+            'id': self.id,
+            'email': self.email,
+        }
+
+
 class Category(Base):
     __tablename__ = 'category'
 
@@ -28,7 +43,9 @@ class Item(Base):
     name = Column(String(250), nullable=False)
     info = Column(String(1000), nullable=False)
     category_id = Column(Integer, ForeignKey('category.id'))
-    category = relationship(Category)
+    category = relationship(Category, cascade='delete')
+    owner_id = Column(Integer, ForeignKey('user.id'))
+    owner = relationship(User)
 
     @property
     def serialize(self):
