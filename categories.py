@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from model import Base, Category, Item
+from model import Base, Category, Item, User
 
 engine = create_engine('sqlite:///item-catalog.db')
 Base.metadata.bind = engine
@@ -12,6 +12,7 @@ session = DBSession()
 # Delete everything
 session.query(Category).delete()
 session.query(Item).delete()
+session.query(User).delete()
 
 session.commit()
 print("Deleted everything!")
