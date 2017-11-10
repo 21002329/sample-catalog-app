@@ -11,7 +11,7 @@ import random
 import string
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
-from model import Base, Item, Category
+from model import Base, Item, Category, User
 
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
@@ -28,7 +28,7 @@ session = DBSession()
 @app.route('/items.json')
 @app.route('/catalog.json')
 def itemsJSON():
-    """JSON endpoint"""
+    """JSON endpoint for complete catalog"""
     catalog = []
     categories = session.query(Category).all()
     for category in categories:
@@ -40,6 +40,22 @@ def itemsJSON():
         })
 
     return jsonify(Category=catalog)
+
+
+@app.route('/item/<int:item_id>.json')
+def itemJSON(item_id):
+    """JSON endpoint for single item"""
+    item = session.query(Item).filter_by(id=item_id).one_or_none()
+
+    if item is None:
+        error = {
+            'status': '404',
+            'title': 'Not Found',
+            'detail': 'No item found with given ID.'
+        }
+        return jsonify(Error=error)
+
+    return jsonify(Item=item.serialize)
 
 
 @app.route('/login')
@@ -126,6 +142,10 @@ def gconnect():
     login_session['email'] = data['email']
     app.logged_in = True
 
+    new_user = User(email=login_session['email'])
+    session.add(new_user)
+    session.commit()
+
     output = ''
     output += '<h1>Welcome, '
     output += login_session['username']
@@ -180,9 +200,13 @@ def show_items():
 @app.route('/catalog/<int:category_id>/items')
 def show_items_category(category_id):
     """Show all items within a category"""
-    category = session.query(Category).filter_by(id=category_id).one()
-    items = session.query(Item).filter_by(category_id=category_id).all()
     categories = session.query(Category).all()
+    category = session.query(Category).filter_by(id=category_id).one_or_none()
+    if category is None:
+        flash('No category found in the Database with given ID.')
+        return redirect(url_for('show_items'))
+
+    items = session.query(Item).filter_by(category_id=category_id).all()
     return render_template('items_category.html',
                            items=items,
                            categories=categories,
@@ -193,7 +217,11 @@ def show_items_category(category_id):
 @app.route('/catalog/<int:category_id>/item/<int:item_id>')
 def show_item(category_id, item_id):
     """Show an item"""
-    item_to_show = session.query(Item).filter_by(id=item_id).one()
+    item_to_show = session.query(Item).filter_by(id=item_id).one_or_none()
+    if item_to_show is None:
+        flash('No item found in the Database with given ID.')
+        return redirect(url_for('show_items'))
+
     return render_template('show_item.html',
                            item=item_to_show,
                            logged_in=app.logged_in)
@@ -202,16 +230,21 @@ def show_item(category_id, item_id):
 @app.route('/catalog/add/', methods=['GET', 'POST'])
 def add_item():
     """Add an item"""
-    if 'username' not in login_session:
+    if 'email' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
+        user = session.query(User).filter_by(
+            email=login_session['email']).one()
         item_name = request.form['name']
         item_info = request.form['info']
         item_category_id = request.form['category']
-        item_to_add = Item(
-            name=item_name, info=item_info, category_id=item_category_id)
+        item_to_add = Item(name=item_name,
+                           info=item_info,
+                           category_id=item_category_id,
+                           owner_id=user.id)
         session.add(item_to_add)
         session.commit()
+        flash('Added ' + item_to_add.name + '!')
         return redirect(url_for('show_items'))
     else:
         categories = session.query(Category).all()
@@ -224,15 +257,30 @@ def add_item():
            methods=['GET', 'POST'])
 def edit_item(category_id, item_id):
     """Edit an item"""
-    if 'username' not in login_session:
+    if 'email' not in login_session:
         return redirect('/login')
-    item_to_edit = session.query(Item).filter_by(id=item_id).one()
+
+    user = session.query(User).filter_by(
+        email=login_session['email']).one_or_none()
+    print(user.email)
+    item_to_edit = session.query(Item).filter_by(id=item_id).one_or_none()
+    print(item_to_edit.owner_id)
+
+    if item_to_edit is None:
+        flash('No item found in the Database with given ID.')
+        return redirect(url_for('show_items'))
+
+    if item_to_edit.owner_id != user.id:
+        flash('Session User not authorized for this Item.')
+        return redirect(url_for('show_items'))
+
     if request.method == 'POST':
         if request.form['name']:
             item_to_edit.name = request.form['name']
             item_to_edit.info = request.form['info']
             item_to_edit.category_id = request.form['category']
             session.commit()
+            flash('Edited ' + item_to_edit.name + '!')
             return redirect(url_for('show_items'))
     else:
         categories = session.query(Category).all()
@@ -246,13 +294,26 @@ def edit_item(category_id, item_id):
            methods=['GET', 'POST'])
 def delete_item(category_id, item_id):
     """Delete an item"""
-    if 'username' not in login_session:
+    if 'email' not in login_session:
         return redirect('/login')
-    item_to_delete = session.query(
-        Item).filter_by(id=item_id).one()
+
+    user = session.query(User).filter_by(
+        email=login_session['email']).one_or_none()
+
+    item_to_delete = session.query(Item).filter_by(id=item_id).one_or_none()
+
+    if item_to_delete is None:
+        flash('No item found in the Database with given ID.')
+        return redirect(url_for('show_items'))
+
+    if item_to_delete.owner_id != user.id:
+        flash('Session User not authorized for this Item.')
+        return redirect(url_for('show_items'))
+
     if request.method == 'POST':
         session.delete(item_to_delete)
         session.commit()
+        flash('Deleted ' + item_to_delete.name + '!')
         return redirect(url_for('show_items'))
     else:
         return render_template('delete_item.html',
